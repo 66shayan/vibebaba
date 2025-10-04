@@ -102,6 +102,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       ),
   );
 
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // TODO does it still make sense?
   useEffect(() => {
     document.querySelector('html')?.setAttribute('class', theme);
@@ -148,11 +154,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
         redirectUri={import.meta.env.VITE_WORKOS_REDIRECT_URI || (loaderData as any)?.ENV.WORKOS_REDIRECT_URI}
         apiHostname={import.meta.env.VITE_WORKOS_API_HOSTNAME}
       >
-        <DndProvider backend={HTML5Backend}>
-          <ConvexProviderWithAuthKit client={convex} useAuth={useAuth}>
-            {children}
-          </ConvexProviderWithAuthKit>
-        </DndProvider>
+        {isClient ? (
+          <DndProvider backend={HTML5Backend}>
+            <ConvexProviderWithAuthKit client={convex} useAuth={useAuth}>
+              {children}
+            </ConvexProviderWithAuthKit>
+          </DndProvider>
+        ) : (
+          children
+        )}
       </AuthKitProvider>
 
       <ScrollRestoration />
