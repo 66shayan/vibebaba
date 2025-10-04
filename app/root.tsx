@@ -23,6 +23,20 @@ import 'allotment/dist/style.css';
 import { ErrorDisplay } from './components/ErrorComponent';
 import useVersionNotificationBanner from './components/VersionNotificationBanner';
 
+import { createCookieSessionStorage } from '@remix-run/node';
+
+const sessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: '__convex_auth',
+    httpOnly: true,
+    path: '/',
+    sameSite: 'lax',
+    secrets: [process.env.SESSION_SECRET || 'fallback-secret-change-in-prod'],
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 7,
+  },
+});
+
 export async function loader() {
   // These environment variables are available in the client (they aren't secret).
   // eslint-disable-next-line local/no-direct-process-env
