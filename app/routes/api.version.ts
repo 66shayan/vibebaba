@@ -6,25 +6,26 @@ export async function action({ request }: ActionFunctionArgs) {
   const projectId = globalEnv.VERCEL_PROJECT_ID;
   const teamId = globalEnv.VERCEL_TEAM_ID;
   const productionBranchUrl = globalEnv.VERCEL_PRODUCTION_BRANCH_URL || 'chef.convex.dev';
-
+  
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
       headers: { 'Content-Type': 'application/json' },
     });
   }
-
-  if (!globalEnv.VERCEL_TOKEN) {
-    return json({ error: 'Failed to fetch version information' }, { status: 500 });
+  
+  // Skip version check on non-Vercel platforms like Render
+  if (!globalEnv.VERCEL_TOKEN || !projectId || !teamId) {
+    return json({ sha: null }, { status: 200 });
   }
-
+  
   const requestOptions = {
     headers: {
       Authorization: `Bearer ${globalThis.process.env.VERCEL_TOKEN}`,
     },
     method: 'get',
   };
-
+  
   if (globalThis.process.env.VERCEL_ENV !== 'preview') {
     // If we're not in a preview deployment, fetch the production deployment from Vercel's undocumented
     // production-deployment API.
@@ -38,23 +39,20 @@ export async function action({ request }: ActionFunctionArgs) {
     if (!prodResponse.ok) {
       return json({ error: 'Failed to fetch production version information' }, { status: 500 });
     }
-
     const prodData = await prodResponse.json();
-
     // Since we retrieved data from an undocumented API
     // let's defensively check that the data we need is present
     // and return an opaque error if it isn't.
     if (!prodData || typeof prodData.deploymentIsStale !== 'boolean') {
       return json({ error: 'Failed to fetch production deployment' }, { status: 500 });
     }
-
     // If the production deployment is rolled back,
     // we should not show a version notification.
     if (prodData.deploymentIsStale) {
       return json({ sha: null }, { status: 200 });
     }
   }
-
+  
   // Even though we retrieved the production data, we might be on a preview branch deployment.
   // So, fetch the data specific to the latest branch deployment.
   const branchUrl = globalThis.process.env.VERCEL_BRANCH_URL || productionBranchUrl;
@@ -68,9 +66,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (!branchResponse.ok) {
     throw new Error('Failed to fetch branch version information');
   }
-
   const branchData = await branchResponse.json();
-
   return json(
     {
       sha: branchData.gitSource.sha,
