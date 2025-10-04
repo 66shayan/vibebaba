@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { setExtra, setUser } from '@sentry/remix';
 import { useConvex, useQuery } from 'convex/react';
 import { useConvexSessionIdOrNullOrLoading, getConvexAuthToken } from '~/lib/stores/sessionId';
@@ -23,6 +23,7 @@ function UserProviderInner({ children }: { children: React.ReactNode }) {
   const sessionId = useConvexSessionIdOrNullOrLoading();
   const chatId = useChatId();
   const convex = useConvex();
+  const hasProcessedAuth = useRef(false);
 
   useEffect(() => {
     if (sessionId) {
@@ -37,6 +38,12 @@ function UserProviderInner({ children }: { children: React.ReactNode }) {
   const tokenValue = (convex as any)?.sync?.state?.auth?.value;
 
   useEffect(() => {
+    // Prevent duplicate authentication attempts
+    if (hasProcessedAuth.current) {
+      return;
+    }
+    hasProcessedAuth.current = true;
+
     async function updateProfile() {
       if (user) {
         launchdarkly?.identify({
