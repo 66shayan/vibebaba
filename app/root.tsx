@@ -9,7 +9,6 @@ import { createHead } from 'remix-island';
 import { useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { ClientOnly } from 'remix-utils/client-only';
 import { AuthKitProvider, useAuth } from '@workos-inc/authkit-react';
 import { ConvexProviderWithAuthKit } from '@convex-dev/workos';
 import { ConvexReactClient } from 'convex/react';
@@ -149,17 +148,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         redirectUri={import.meta.env.VITE_WORKOS_REDIRECT_URI || (loaderData as any)?.ENV.WORKOS_REDIRECT_URI}
         apiHostname={import.meta.env.VITE_WORKOS_API_HOSTNAME}
       >
-        <ClientOnly>
-          {() => {
-            return (
-              <DndProvider backend={HTML5Backend}>
-                <ConvexProviderWithAuthKit client={convex} useAuth={useAuth}>
-                  {children}
-                </ConvexProviderWithAuthKit>
-              </DndProvider>
-            );
-          }}
-        </ClientOnly>
+        <DndProvider backend={HTML5Backend}>
+          <ConvexProviderWithAuthKit client={convex} useAuth={useAuth}>
+            {children}
+          </ConvexProviderWithAuthKit>
+        </DndProvider>
       </AuthKitProvider>
 
       <ScrollRestoration />
