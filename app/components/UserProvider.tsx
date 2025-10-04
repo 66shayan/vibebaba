@@ -39,8 +39,8 @@ function UserProviderInner({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function updateProfile() {
       if (user) {
-        launchdarkly?.identify({
-          key: convexMemberId ?? '',
+          launchdarkly?.identify({
+          key: convexMemberId ?? `anonymous-${Date.now()}`,
           email: user.email ?? '',
         });
         setUser({
