@@ -1,6 +1,6 @@
 import { captureRemixErrorBoundaryError, captureMessage } from '@sentry/remix';
 import { useStore } from '@nanostores/react';
-import type { LinksFunction } from '@vercel/remix';
+import type { LinksFunction, LoaderFunctionArgs } from '@vercel/remix';
 import { json } from '@vercel/remix';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, useRouteLoaderData, useRouteError } from '@remix-run/react';
 import { themeStore } from './lib/stores/theme';
@@ -37,15 +37,24 @@ const sessionStorage = createCookieSessionStorage({
   },
 });
 
-export async function loader() {
+export async function loader({ request }: LoaderFunctionArgs) {
   // These environment variables are available in the client (they aren't secret).
   // eslint-disable-next-line local/no-direct-process-env
   const CONVEX_URL = process.env.VITE_CONVEX_URL || globalThis.process.env.CONVEX_URL!;
   const CONVEX_OAUTH_CLIENT_ID = globalThis.process.env.CONVEX_OAUTH_CLIENT_ID!;
-  const WORKOS_REDIRECT_URI =
-    globalThis.process.env.VITE_WORKOS_REDIRECT_URI || globalThis.process.env.VERCEL_BRANCH_URL!;
+  const WORKOS_REDIRECT_URI = `${new URL(request.url).origin}/auth/callback`;
+
+  // Get auth token from session
+  const session = await sessionStorage.getSession(request.headers.get('Cookie'));
+  const convexAuthToken = session.get('convex_auth_token');
+  const user = session.get('user');
+
   return json({
     ENV: { CONVEX_URL, CONVEX_OAUTH_CLIENT_ID, WORKOS_REDIRECT_URI },
+    auth: {
+      token: convexAuthToken || null,
+      user: user || null,
+    },
   });
 }
 
@@ -160,7 +169,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <>
       <AuthKitProvider
         clientId={import.meta.env.VITE_WORKOS_CLIENT_ID}
-        redirectUri={import.meta.env.VITE_WORKOS_REDIRECT_URI || (loaderData as any)?.ENV.WORKOS_REDIRECT_URI}
+        redirectUri={(loaderData as any)?.ENV.WORKOS_REDIRECT_URI}
         apiHostname={import.meta.env.VITE_WORKOS_API_HOSTNAME}
       >
         <ClientOnly>
