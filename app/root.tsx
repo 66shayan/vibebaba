@@ -177,7 +177,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <>
       <AuthKitProvider
         clientId={import.meta.env.VITE_WORKOS_CLIENT_ID}
-        redirectUri={(loaderData as any)?.ENV.WORKOS_REDIRECT_URI}
+        redirectUri="https://vibebaba.onrender.com/auth/callback"
         apiHostname={import.meta.env.VITE_WORKOS_API_HOSTNAME}
       >
         <ClientOnly>
