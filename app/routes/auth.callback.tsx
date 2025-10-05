@@ -70,16 +70,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     const tokens = await tokenResponse.json();
     
+    console.log('Token exchange successful, access_token length:', tokens.access_token?.length);
+    
     // Store the access token in a secure session cookie
     const session = await sessionStorage.getSession(request.headers.get('Cookie'));
     session.set('convex_auth_token', tokens.access_token);
     session.set('refresh_token', tokens.refresh_token);
     session.set('user', tokens.user);
 
+    const cookieHeader = await sessionStorage.commitSession(session);
+    console.log('Setting cookie header:', cookieHeader.substring(0, 100) + '...');
+
     // Redirect back to home with the session cookie
     return redirect('/', {
       headers: {
-        'Set-Cookie': await sessionStorage.commitSession(session),
+        'Set-Cookie': cookieHeader,
       },
     });
   } catch (error) {
