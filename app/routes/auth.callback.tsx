@@ -9,7 +9,7 @@ const sessionStorage = createCookieSessionStorage({
     httpOnly: true,
     path: '/',
     sameSite: 'lax',
-    secrets: [process.env.SESSION_SECRET || 'fallback-secret-change-in-prod'],
+    secrets: [globalThis.process.env.SESSION_SECRET || 'fallback-secret-change-in-prod'],
     secure: process.env.NODE_ENV === 'production',
     maxAge: 60 * 60 * 24 * 7, // 7 days
   },
@@ -34,9 +34,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   try {
-    // Exchange code for tokens with WorkOS
-    const clientId = process.env.WORKOS_CLIENT_ID || process.env.VITE_WORKOS_CLIENT_ID;
-    const redirectUri = process.env.WORKOS_REDIRECT_URI || process.env.VITE_WORKOS_REDIRECT_URI;
+    // Exchange code for tokens with WorkOS - using globalThis.process.env for server-side variables
+    const clientId = globalThis.process.env.WORKOS_CLIENT_ID || process.env.VITE_WORKOS_CLIENT_ID;
+    const redirectUri = globalThis.process.env.WORKOS_REDIRECT_URI || process.env.VITE_WORKOS_REDIRECT_URI;
     const apiHostname = process.env.VITE_WORKOS_API_HOSTNAME || 'apiauth.convex.dev';
 
     if (!clientId) {
