@@ -126,6 +126,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
       ),
   );
 
+  // Set the auth token from server session
+  useEffect(() => {
+    const authToken = (loaderData as any)?.auth?.token;
+    if (authToken) {
+      convex.setAuth(authToken);
+    }
+  }, [(loaderData as any)?.auth?.token, convex]);
+
   // TODO does it still make sense?
   useEffect(() => {
     document.querySelector('html')?.setAttribute('class', theme);
@@ -169,7 +177,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <>
       <AuthKitProvider
         clientId={import.meta.env.VITE_WORKOS_CLIENT_ID}
-        redirectUri="https://vibebaba.onrender.com/auth/callback"
+        redirectUri={(loaderData as any)?.ENV.WORKOS_REDIRECT_URI}
         apiHostname={import.meta.env.VITE_WORKOS_API_HOSTNAME}
       >
         <ClientOnly>
