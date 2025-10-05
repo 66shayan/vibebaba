@@ -31,8 +31,8 @@ const sessionStorage = createCookieSessionStorage({
     httpOnly: true,
     path: '/',
     sameSite: 'lax',
-    secrets: [process.env.SESSION_SECRET || 'fallback-secret-change-in-prod'],
-    secure: process.env.NODE_ENV === 'production',
+    secrets: [globalThis.process.env.SESSION_SECRET || 'fallback-secret-change-in-prod'],
+    secure: true, // Force secure since Render uses HTTPS
     maxAge: 60 * 60 * 24 * 7,
   },
 });
@@ -48,6 +48,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const session = await sessionStorage.getSession(request.headers.get('Cookie'));
   const convexAuthToken = session.get('convex_auth_token');
   const user = session.get('user');
+
+  console.log('Root loader - Has auth token:', !!convexAuthToken, 'Token length:', convexAuthToken?.length || 0);
 
   return json({
     ENV: { CONVEX_URL, CONVEX_OAUTH_CLIENT_ID, WORKOS_REDIRECT_URI },
