@@ -36,11 +36,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   try {
     // Exchange code for tokens with WorkOS - using globalThis.process.env for server-side variables
     const clientId = globalThis.process.env.WORKOS_CLIENT_ID || process.env.VITE_WORKOS_CLIENT_ID;
+    const clientSecret = globalThis.process.env.WORKOS_API_KEY;
     const redirectUri = globalThis.process.env.WORKOS_REDIRECT_URI || process.env.VITE_WORKOS_REDIRECT_URI;
     const apiHostname = process.env.VITE_WORKOS_API_HOSTNAME || 'apiauth.convex.dev';
 
     if (!clientId) {
       throw new Error('Missing WORKOS_CLIENT_ID');
+    }
+
+    if (!clientSecret) {
+      throw new Error('Missing WORKOS_API_KEY');
     }
 
     const tokenResponse = await fetch(`https://${apiHostname}/user_management/authenticate`, {
@@ -50,6 +55,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       },
       body: JSON.stringify({
         client_id: clientId,
+        client_secret: clientSecret,
         code: code,
         grant_type: 'authorization_code',
         redirect_uri: redirectUri,
