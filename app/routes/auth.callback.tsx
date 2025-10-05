@@ -10,7 +10,7 @@ const sessionStorage = createCookieSessionStorage({
     path: '/',
     sameSite: 'lax',
     secrets: [globalThis.process.env.SESSION_SECRET || 'fallback-secret-change-in-prod'],
-    secure: process.env.NODE_ENV === 'production',
+    secure: true, // Force secure since Render uses HTTPS
     maxAge: 60 * 60 * 24 * 7, // 7 days
   },
 });
